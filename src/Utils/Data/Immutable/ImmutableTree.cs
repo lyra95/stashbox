@@ -383,6 +383,18 @@ internal sealed class ImmutableTree<TKey, TValue>
 
     private ImmutableTree<TKey, TValue> CheckCollision(int hash, TKey key, TValue value, bool byRef, Func<TValue, TValue, TValue>? updateDelegate, bool forceUpdate)
     {
+        if (!key.Equals(this.storedKey))
+        {
+            if (this.collisions != null)
+            {
+                this.collisions.AddOrUpdate(key, value, byRef, updateDelegate);
+                return this;
+            }
+
+            return new ImmutableTree<TKey, TValue>(hash, this.storedKey!, this.storedValue!, this.leftNode!, this.rightNode!,
+                ImmutableBucket<TKey, TValue>.Empty.Add(key, value));
+        }
+
         if (byRef && ReferenceEquals(key, this.storedKey) || !byRef && Equals(key, this.storedKey))
         {
             if (forceUpdate)
